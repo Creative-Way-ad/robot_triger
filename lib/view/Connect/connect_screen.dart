@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_screenutil/flutter_screenutil.dart';
 import 'package:provider/provider.dart';
 import 'package:robot_triger/services/mqtt/MQTTManager.dart';
 import 'package:robot_triger/services/mqtt/state/MQTTAppState.dart';
@@ -14,10 +15,17 @@ class MQTTView extends StatefulWidget {
 
 class _MQTTViewState extends State<MQTTView> {
   final TextEditingController _hostTextController = TextEditingController();
-  final TextEditingController _messageTextController = TextEditingController();
   final TextEditingController _topicTextController = TextEditingController();
+
   late MQTTAppState currentAppState;
   late MQTTManager manager;
+
+  @override
+  void initState() {
+    super.initState();
+    _hostTextController.text = 'io.adafruit.com';
+    _topicTextController.text = 'EslamJuba/feeds/welcome-feed';
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -26,87 +34,100 @@ class _MQTTViewState extends State<MQTTView> {
     return Scaffold(
       appBar: AppBar(
         title: const Text("Efada"),
-        backgroundColor: Colors.blueAccent,
+        backgroundColor: const Color(0xff112143),
+        elevation: 0.0,
       ),
-      body: Column(
-        children: [
-          Row(
-            children: <Widget>[
-              Expanded(
-                child: Container(
-                  color: Colors.deepOrangeAccent,
-                  child: Text(
-                    _prepareStateMessageFrom(appState.getAppConnectionState),
-                    textAlign: TextAlign.center,
+      body: SingleChildScrollView(
+        child: Container(
+          color: currentAppState.getReceivedText == '0'
+              ? Colors.black
+              : Colors.white,
+          height: 640.h,
+          child: Column(
+            mainAxisSize: MainAxisSize.max,
+            children: [
+              Row(
+                children: <Widget>[
+                  Expanded(
+                    child: Container(
+                      color: currentAppState.getAppConnectionState ==
+                              MQTTAppConnectionState.connected
+                          ? Colors.green
+                          : Colors.grey,
+                      child: Text(
+                        _prepareStateMessageFrom(
+                            currentAppState.getAppConnectionState),
+                        textAlign: TextAlign.center,
+                        style: TextStyle(
+                          color: Colors.white,
+                          fontSize: 12.sp,
+                        ),
+                      ),
+                    ),
                   ),
-                ),
+                ],
               ),
+              currentAppState.getReceivedText == '0'
+                  ? const SizedBox(
+                      width: double.infinity,
+                      child: Image(
+                        image: AssetImage(
+                          'assets/smile-face.gif',
+                        ),
+                        fit: BoxFit.cover,
+                      ),
+                    )
+                  : Padding(
+                      padding: const EdgeInsets.all(20.0),
+                      child: Column(
+                        children: <Widget>[
+                          _buildTextFieldWith(
+                              _hostTextController,
+                              'Enter broker address',
+                              currentAppState.getAppConnectionState),
+                          SizedBox(height: 10.h),
+                          _buildTextFieldWith(
+                              _topicTextController,
+                              'Enter a topic to subscribe or listen',
+                              currentAppState.getAppConnectionState),
+                          SizedBox(height: 10.h),
+                          _buildConnectButtonFrom(
+                              currentAppState.getAppConnectionState)
+                        ],
+                      ),
+                    ),
             ],
           ),
-          Padding(
-            padding: const EdgeInsets.all(20.0),
-            child: Column(
-              children: <Widget>[
-                _buildTextFieldWith(
-                    _hostTextController,
-                    'io.adafruit.com',
-                    'Enter broker address',
-                    currentAppState.getAppConnectionState),
-                const SizedBox(height: 10),
-                _buildTextFieldWith(
-                    _topicTextController,
-                    'EslamJuba/feeds/welcome-feed',
-                    'Enter a topic to subscribe or listen',
-                    currentAppState.getAppConnectionState),
-                const SizedBox(height: 10),
-                _buildConnectButtonFrom(currentAppState.getAppConnectionState)
-              ],
-            ),
-          ),
-          Padding(
-            padding: const EdgeInsets.all(
-              20.0,
-            ),
-            child: Center(
-              child: Text(
-                _prepareRobotState(
-                  currentAppState.getReceivedText,
-                ),
-              ),
-            ),
-          ),
-        ],
+        ),
       ),
     );
   }
 
   Widget _buildTextFieldWith(
     TextEditingController controller,
-    String? defaultValue,
     String hintText,
     MQTTAppConnectionState state,
   ) {
-    if (defaultValue != null) {
-      controller.text = defaultValue;
-    }
     bool shouldEnable = false;
-    if (controller == _messageTextController &&
-        state == MQTTAppConnectionState.connected) {
-      shouldEnable = true;
-    } else if ((controller == _hostTextController &&
+    if ((controller == _hostTextController &&
             state == MQTTAppConnectionState.disconnected) ||
         (controller == _topicTextController &&
             state == MQTTAppConnectionState.disconnected)) {
       shouldEnable = true;
     }
     return TextField(
-        enabled: shouldEnable,
-        controller: controller,
-        decoration: InputDecoration(
-          contentPadding:
-              const EdgeInsets.only(left: 0, bottom: 0, top: 0, right: 0),
-          labelText: hintText,
-        ));
+      enabled: shouldEnable,
+      controller: controller,
+      decoration: InputDecoration(
+        contentPadding: const EdgeInsets.only(
+          left: 0,
+          bottom: 0,
+          top: 0,
+          right: 0,
+        ),
+        labelText: hintText,
+      ),
+    );
   }
 
   Widget _buildConnectButtonFrom(MQTTAppConnectionState state) {
@@ -115,21 +136,35 @@ class _MQTTViewState extends State<MQTTView> {
         Expanded(
           // ignore: deprecated_member_use
           child: RaisedButton(
-            color: Colors.lightBlueAccent,
+            color: const Color(0xff112143),
             onPressed: state == MQTTAppConnectionState.disconnected
                 ? _configureAndConnect
                 : null,
-            child: const Text('Connect'), //
+            child: Text(
+              'Connect',
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: Colors.white,
+              ),
+            ), //
           ),
         ),
-        const SizedBox(width: 10),
+        const SizedBox(
+          width: 10,
+        ),
         Expanded(
           // ignore: deprecated_member_use
           child: RaisedButton(
             color: Colors.redAccent,
             onPressed:
                 state == MQTTAppConnectionState.connected ? _disconnect : null,
-            child: const Text('Disconnect'), //
+            child: Text(
+              'Disconnect',
+              style: TextStyle(
+                fontSize: 15.sp,
+                color: Colors.white,
+              ),
+            ), //
           ),
         ),
       ],
