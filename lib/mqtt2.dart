@@ -14,23 +14,23 @@ class Mqtt2 {
   static String clientIdentifier = '';
   static double temp = 20;
 
-  static late mqtt.MqttClient client;
+  static  mqtt.MqttClient? client;
   static late mqtt.MqttConnectionState connectionState;
 
   static late StreamSubscription subscription;
 
   static Future<Subscription?> subscribeToTopic(String topic) async {
     if (connectionState == mqtt.MqttConnectionState.connected) {
-      return client.subscribe(topic, mqtt.MqttQos.atMostOnce);
+      return client!.subscribe(topic, mqtt.MqttQos.atMostOnce);
     }
     return null;
   }
 
   static Future<bool> connect() async {
     try {
-      if ((client.connectionStatus!.state ==
+      if ((client!.connectionStatus!.state ==
               mqtt.MqttConnectionState.connected ||
-          client.connectionStatus!.state ==
+          client!.connectionStatus!.state ==
               mqtt.MqttConnectionState.connecting)) {
         return connectToServer();
       }
@@ -39,10 +39,10 @@ class Mqtt2 {
     }
     client = MqttServerClient.withPort(broker, clientIdentifier, 1883,
         maxConnectionAttempts: 50);
-    client.port = port;
-    client.logging(on: false);
-    client.keepAlivePeriod = 60;
-    client.autoReconnect = true;
+    client!.port = port;
+    client!.logging(on: false);
+    client!.keepAlivePeriod = 60;
+    client!.autoReconnect = true;
     // client.onDisconnected = _onDisconnected;
     return connectToServer();
   }
@@ -52,14 +52,14 @@ class Mqtt2 {
         .withClientIdentifier(clientIdentifier)
         .startClean()
         .withWillQos(mqtt.MqttQos.atLeastOnce);
-    client.connectionMessage = connMess;
+    client!.connectionMessage = connMess;
 
     try {
-      await client.connect(username, passwd);
+      await client!.connect(username, passwd);
 
-      if (client.connectionStatus!.state ==
+      if (client!.connectionStatus!.state ==
           mqtt.MqttConnectionState.connected) {
-        connectionState = client.connectionStatus!.state;
+        connectionState = client!.connectionStatus!.state;
 
         return true;
       } else {
@@ -74,13 +74,13 @@ class Mqtt2 {
   }
 
   static void disconnect() {
-    client.disconnect();
+    client!.disconnect();
     // _onDisconnected();
   }
 
   void _onDisconnected() {
     // ignore: deprecated_member_use
-    connectionState = client.connectionState!;
+    connectionState = client!.connectionState!;
     // ignore: unnecessary_null_comparison
     if (subscription != null) subscription.cancel();
     // cubit.changeMqttState(false);
@@ -92,7 +92,7 @@ class Mqtt2 {
       subscribeToTopic(topic);
     }
     subscription =
-        client.updates!.listen((List<mqtt.MqttReceivedMessage> event) {
+        client!.updates!.listen((List<mqtt.MqttReceivedMessage> event) {
       onMessage(event, mqttSetState);
     });
   }
@@ -113,7 +113,7 @@ class Mqtt2 {
     builder.addString(msg);
 
     try {
-      client.publishMessage(topic, mqtt.MqttQos.atLeastOnce, builder.payload!,
+      client!.publishMessage(topic, mqtt.MqttQos.atLeastOnce, builder.payload!,
           retain: false);
       return true;
     } catch (err) {

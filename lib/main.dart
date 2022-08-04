@@ -1,4 +1,7 @@
 import 'package:flutter/material.dart';
+import 'package:provider/provider.dart';
+import 'package:robot_triger/services/mqtt/state/MQTTAppState.dart';
+import 'package:robot_triger/view/Connect/connect_screen.dart';
 
 import 'mqtt2.dart';
 
@@ -30,7 +33,10 @@ class MyApp extends StatelessWidget {
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(),
+      home: ChangeNotifierProvider<MQTTAppState>(
+        create: (_) => MQTTAppState(),
+        child: const MQTTView(),
+      ),
     );
   }
 }
