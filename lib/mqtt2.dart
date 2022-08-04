@@ -1,8 +1,9 @@
 import 'dart:async';
+import 'package:flutter/material.dart';
 import 'package:mqtt_client/mqtt_client.dart';
 import 'package:mqtt_client/mqtt_server_client.dart';
 import 'package:mqtt_client/mqtt_client.dart' as mqtt;
-import 'package:robot_triger/uitiltes.dart';
+
 
 class Mqtt2 {
   static String broker = "io.adafruit.com";
@@ -33,7 +34,9 @@ class Mqtt2 {
               mqtt.MqttConnectionState.connecting)) {
         return connectToServer();
       }
-    } catch (err) {}
+    } catch (err) {
+      debugPrint(err.toString());
+    }
     client = MqttServerClient.withPort(broker, clientIdentifier, 1883,
         maxConnectionAttempts: 50);
     client.port = port;
@@ -64,7 +67,7 @@ class Mqtt2 {
         return false;
       }
     } catch (e) {
-      print(e);
+      debugPrint(e.toString());
       disconnect();
       return false;
     }

@@ -4,7 +4,7 @@ import 'mqtt2.dart';
 
 Future<void> initMqtt(response) async {
   var res = await Mqtt2.connect();
-  print('Mqtt connections: $res');
+  debugPrint('Mqtt connections: $res');
   await Mqtt2.setSubscribe(['EslamJuba/feeds/welcome-feed'], response);
 }
 
@@ -12,7 +12,7 @@ Future<void> initMqtt(response) async {
 /// message = 1 => Right
 /// message = 2 => Left
 void response(String topic, String message) {
-  print('topic: $topic, message: $message');
+  debugPrint('topic: $topic, message: $message');
 }
 
 void main() {
@@ -26,19 +26,17 @@ class MyApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
-      title: 'Flutter Demo',
+      title: 'Robot App',
       theme: ThemeData(
         primarySwatch: Colors.blue,
       ),
-      home: const MyHomePage(title: 'Flutter Demo Home Page'),
+      home: const MyHomePage(),
     );
   }
 }
 
 class MyHomePage extends StatefulWidget {
-  const MyHomePage({Key? key, required this.title}) : super(key: key);
-
-  final String title;
+  const MyHomePage({Key? key}) : super(key: key);
 
   @override
   State<MyHomePage> createState() => _MyHomePageState();
@@ -53,24 +51,22 @@ class _MyHomePageState extends State<MyHomePage> {
   }
 
   void response(String topic, String msg) {
-    if (msg == '0') {
-      message = 'foreword';
-    } else if (msg == '1') {
-      message = 'right';
-    } else if (msg == '2') {
-      message = 'left';
-    }
-
-    print('topic: $topic, message: $msg');
-    setState(() {});
+    setState(() {
+      if (msg == '0') {
+        message = 'foreword';
+      } else if (msg == '1') {
+        message = 'right';
+      } else if (msg == '2') {
+        message = 'left';
+      }
+      debugPrint('topic: $topic, message: $msg');
+    });
   }
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text(widget.title),
-      ),
+      appBar: AppBar(),
       body: Center(
         child: Column(
           mainAxisAlignment: MainAxisAlignment.center,
